@@ -8,13 +8,14 @@
 <script type="text/paperscript" canvas="myCanvas">
 
   //settings variables
-  var numSegments = 6;
+  var numSegments = 10;
   var rotation = 360/numSegments;
   var centerX = $('canvas').width()/2;
   var centerY = $('canvas').height()/2;
   var centerPoint = new Point(centerX, centerY);
-  var segLength = Math.min($('canvas').width(), $('canvas').height()) * 0.4;
+  var segLength = Math.min($('canvas').width(), $('canvas').height()) * 0.48;
   var circleSize = 50;
+  var tool = 'draw'
 
   //draw work area
   drawGuide();
@@ -35,6 +36,10 @@
   $decreasePetal.on('click', decreasePetalSize);
 
   function drawGuide() {
+    if (tri) {
+      tri.remove()
+    }
+
     var t1 = centerPoint;
     var t2 = new Point(centerPoint.x, centerPoint.y - segLength);
     t2 = t2.rotate(rotation/2, centerPoint);
@@ -52,6 +57,7 @@
   function drawRotation() {
     length = rotateGroups.length;
     rotateGroups[length] = drawGroup.clone();
+    clearDrawGroup();
 
     //rotate & draw segments
     for(var i = length + 1; i <= length + numSegments; i++) {
@@ -63,18 +69,35 @@
   }
 
   function clearDrawing() {
-    drawGroup.removeChildren();
     rotateGroups.forEach(function (group) {
       group.remove();
     });
     rotateGroups = [];
+    clearDrawGroup();
+  }
+
+  function clearDrawGroup() {
+    drawGroup.remove();
     drawGroup = new Group();
   }
 
   function onMouseDown(event) {
-    var circle = new Path.Circle(event.point, circleSize);
-    circle.strokeColor = 'black';
-    drawGroup.addChild(circle);
+    if (tool === 'circle') {
+      var circle = new Path.Circle(event.point, circleSize);
+      circle.strokeColor = 'black';
+      drawGroup.addChild(circle);
+    }
+    else if (tool === 'draw') {
+      drawLine = new Path();
+      drawLine.strokeColor = 'black';
+      drawGroup.addChild(drawLine);
+    }
+  }
+
+  function onMouseDrag(event) {
+    if (tool === 'draw') {
+      drawLine.add(event.point);
+    }
   }
 
   function updatePetalSizeDisplay() {
